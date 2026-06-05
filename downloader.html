@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HJ Downloader Preview</title>
+  <link rel="stylesheet" href="downloader.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>HJ Downloader Preview</h1>
+        <p>测试工具，只使用当前 Chrome 已登录的普通账号态。<span id="app-version" class="version-badge"></span></p>
+      </div>
+      <div class="status-pill" id="root-state">未选择目录</div>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>保存位置</h2>
+        <div class="button-row">
+          <button id="choose-root">选择根目录</button>
+          <button id="open-root" disabled>打开/授权根目录</button>
+        </div>
+      </div>
+      <div class="muted" id="root-detail">选择后会按楼主名创建或复用子文件夹。</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>站点与登录</h2>
+        <div class="button-row">
+          <button id="authorize-origin">授权当前域名</button>
+          <button id="refresh-origins">刷新域名</button>
+          <button id="check-login">检查登录</button>
+          <button id="open-login">打开登录页</button>
+        </div>
+      </div>
+      <div class="site-origin-grid">
+        <label>当前站点域名
+          <input id="site-origin" value="" placeholder="https://<target-domain>">
+        </label>
+        <label>粘贴域名/链接
+          <textarea id="origin-import" spellcheck="false" placeholder="可粘贴域名或链接，例如：https://<target-domain>/..."></textarea>
+        </label>
+        <div class="domain-actions">
+          <button id="detect-origins" type="button">识别域名</button>
+          <button id="authorize-detected-origins" type="button">授权识别到的域名</button>
+        </div>
+      </div>
+      <div class="origin-status-line">
+        <span id="site-origin-state">未检测域名授权。</span>
+      </div>
+      <div id="authorized-origin-list" class="origin-chip-list"></div>
+      <div class="muted" id="login-detail">未检测。插件会复用当前 Chrome 的网站登录态。</div>
+    </section>
+
+    <section class="panel">
+      <h2>批量链接</h2>
+      <div class="batch-source-layout">
+        <textarea id="batch-input" spellcheck="false" placeholder="每行一个详情页链接或 pid，例如：
+https://<target-domain>/<detail-path>?pid=<resource-id>
+https://<target-domain>/<list-path>/<user-id>
+570688"></textarea>
+        <aside class="saved-sell-panel">
+          <div class="saved-sell-head">
+            <strong>已保存博主</strong>
+            <span id="saved-sell-count">未读取</span>
+          </div>
+          <div id="saved-sell-list" class="saved-sell-list">选择根目录后读取。</div>
+          <div class="saved-sell-actions">
+            <button id="saved-sell-refresh" type="button">刷新</button>
+            <button id="saved-sell-add" type="button">加入所选</button>
+          </div>
+        </aside>
+      </div>
+      <div class="toolbar">
+        <button id="parse">解析资源</button>
+        <button id="start">下载选中</button>
+        <button id="stop" disabled>停止</button>
+        <button id="export-report" disabled>导出脱敏报告</button>
+        <button id="toggle-parsed-sources">隐藏已解析来源</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>保存规则</h2>
+      <div class="grid">
+        <label>文件名模板
+          <input id="name-template" value="{publishedSort} - {title} - {author}-用户{uid} - 帖子{pid} - {seconds}s">
+        </label>
+        <label>已存在文件
+          <select id="conflict-mode">
+            <option value="skip">跳过</option>
+            <option value="rename">自动改名</option>
+            <option value="overwrite">覆盖</option>
+          </select>
+        </label>
+        <label>任务间隔秒
+          <input id="delay-seconds" type="number" min="0" max="300" value="2">
+        </label>
+        <label>单分片超时秒
+          <input id="segment-timeout" type="number" min="5" max="120" value="30">
+        </label>
+        <label>分片并发数
+          <input id="segment-concurrency" type="number" min="1" max="32" value="12">
+        </label>
+        <label>任务并发数
+          <input id="task-concurrency" type="number" min="1" max="4" value="2">
+        </label>
+        <label>全局媒体请求
+          <input id="global-media-concurrency" type="number" min="1" max="48" value="24">
+        </label>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" id="by-author" checked> 按楼主名创建子文件夹</label>
+        <label><input type="checkbox" id="save-manifest"> 同时保存完整 m3u8</label>
+        <label><input type="checkbox" id="fallback-preview"> 完整索引失败时保存预览</label>
+        <label><input type="checkbox" id="sell-video-only" checked> 出售页只导入视频帖</label>
+        <label><input type="checkbox" id="auto-download-after-parse"> 解析完成后自动下载</label>
+        <label><input type="checkbox" id="adaptive-concurrency" checked> 自适应并发（实验）</label>
+        <label><input type="checkbox" id="login-assist" checked> 登录页临时自动辅助</label>
+      </div>
+      <div class="muted">模板变量：{publishedSort}、{publishedDate}、{publishedAt}、{title}、{author}、{uid}、{pid}、{seconds}、{segments}、{attachmentId}</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>进度</h2>
+        <div class="muted" id="summary">未开始</div>
+      </div>
+      <div id="results" class="results"></div>
+    </section>
+  </main>
+
+  <aside class="float-console collapsed" id="float-console">
+    <div class="float-head">
+      <div>
+        <strong>下载设置</strong>
+        <span id="float-state">空闲</span>
+      </div>
+      <button id="float-toggle" title="打开下载设置">海</button>
+    </div>
+    <div class="float-body" id="float-body">
+      <label class="float-field float-wide">
+        <span>链接 / pid</span>
+        <textarea id="float-batch-input" spellcheck="false" placeholder="粘贴详情页链接或 pid，粘连链接会自动拆分"></textarea>
+      </label>
+      <div class="float-fields">
+        <label class="float-field float-wide">
+          <span>站点域名</span>
+          <input id="float-site-origin" placeholder="https://<target-domain>">
+        </label>
+        <label class="float-field">
+          <span>间隔秒</span>
+          <input id="float-delay-seconds" type="number" min="0" max="300">
+        </label>
+        <label class="float-field">
+          <span>超时秒</span>
+          <input id="float-segment-timeout" type="number" min="5" max="120">
+        </label>
+        <label class="float-field">
+          <span>并发</span>
+          <input id="float-segment-concurrency" type="number" min="1" max="32">
+        </label>
+        <label class="float-field">
+          <span>任务</span>
+          <input id="float-task-concurrency" type="number" min="1" max="4">
+        </label>
+        <label class="float-field">
+          <span>全局请求</span>
+          <input id="float-global-media-concurrency" type="number" min="1" max="48">
+        </label>
+      </div>
+      <div class="float-checks">
+        <label><input type="checkbox" id="float-sell-video-only"> 只导入视频帖</label>
+        <label><input type="checkbox" id="float-auto-download-after-parse"> 自动下载</label>
+        <label><input type="checkbox" id="float-adaptive-concurrency"> 自适应</label>
+        <label><input type="checkbox" id="float-login-assist"> 登录辅助</label>
+      </div>
+      <div class="float-row"><span>登录</span><b id="float-login">未检测</b></div>
+      <div class="float-row"><span>目录</span><b id="float-root">未选择</b></div>
+      <div class="float-current" id="float-current">等待任务</div>
+      <div class="float-progress"><div id="float-progress-fill"></div></div>
+      <div class="float-actions">
+        <button id="float-check-login">检查登录</button>
+        <button id="float-open-login">登录页</button>
+        <button id="float-choose-root">目录</button>
+        <button id="float-parse">解析</button>
+        <button id="float-start">下载</button>
+        <button id="float-stop" disabled>停止</button>
+        <button id="float-export" disabled>脱敏报告</button>
+      </div>
+    </div>
+  </aside>
+  <script src="downloader.js"></script>
+</body>
+</html>

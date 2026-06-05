@@ -1,0 +1,8 @@
+﻿{
+  "scripts": {
+    "check": "npm run lint:syntax && npm test",
+    "lint:syntax": "node --check background.js && node --check content-helper.js && node --check downloader.js && node -e \"JSON.parse(require('fs').readFileSync('manifest.json','utf8'))\"",
+    "test": "node tests/run-tests.js"
+  },
+  "devDependencies": {}
+}

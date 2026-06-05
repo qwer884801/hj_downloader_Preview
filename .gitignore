@@ -1,0 +1,30 @@
+﻿# local secrets
+.env
+.env.*
+!.env.example
+*.local
+*.local.*
+config.local.*
+
+# logs / private notes
+*.log
+logs/
+devlog*
+devlogs/
+开发日志*
+日志*
+docs/
+*PLAN*.md
+
+# local agent/editor files
+AGENTS.md
+.codex/
+.vscode/
+.idea/
+
+# dependencies / builds
+node_modules/
+dist/
+build/
+release/
+.cache/
